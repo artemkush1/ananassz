@@ -28,46 +28,39 @@ class Common:
             self.file_type = (file_path.split('.')[-1]).upper()
     
     def text_to_binary(self, file_path, max_size):
-        '''
+         '''
         Reads a payload file and converts it to binary with the appropriate buffers.
         :param file_path: The path of the payload file.
         :param max_size: Used to determine how much extra random data should be appended to the end of the message.
         '''
-        "print(type(file_path))
-        if type ( file_path )  == 'str':
-            text = file_path
-            
-        else:
-            try:
-                text_file = open(file_path, 'rb').read()
-                hidden_file = file_path.split('.')[-1]
-            except Exception as e:
-                raise Exception('[!] Failed to open target file: {}'.format(str(e)))
-            try:
-                text = text_file.read()
-                text += TAB
+        try:
+            text_file = open(file_path, 'rb')
+            hidden_file = file_path.split('.')[-1]
+        except Exception as e:
+            raise Exception('[!] Failed to open target file: {}'.format(str(e)))
+        try:
+            text = text_file.read()
+            text += TAB
 
-        # add buffers and file format
-        text += START_BUFFER + TAB
-        text += str.encode(hidden_file) + TAB
-        text += END_BUFFER
-        text_file.close()
+            # add buffers and file format
+            text += START_BUFFER + TAB
+            text += str.encode(hidden_file) + TAB
+            text += END_BUFFER
+            text_file.close()
 
-        # convert to hex string
-        hex_text = b2a_hex(text).decode('ascii')
-        # convert hex to binary and fill the rest of the bitstream with random hex
-        b = ''
-                
-        for ch in hex_text:
+            # convert to hex string
+            hex_text = binascii.b2a_hex(text).decode('ascii')
+            # convert hex to binary and fill the rest of the bitstream with random hex
+            b = ''
+            for ch in hex_text:
                 tmp = bin(ord(ch))[2:]
                 if len(tmp) < 7:
                     for _ in range(0,(7-len(tmp))):
                         tmp = '0' + tmp
                 b += tmp
-        for _ in range(0,(max_size - len(b)),7):
-            b += str(bin(ord(choice('abcdef')))[2:])
-        return b
-        
+            for _ in range(0,(max_size - len(b)),7):
+                b += str(bin(ord(random.choice('abcdef')))[2:])
+            return b
         except Exception as e:
             raise Exception('[!] Text to binary conversion failed! {}'.format(str(e)))
 
@@ -144,7 +137,7 @@ class IMG:
     :param payload_path: The path of the payload (message) that should be hidden.
     :param image_path: The path of the carrier image in which to hide the payload.
     '''
-    def __init__(self, payload_path=None, image_path=None):
+    def __init__(self, payload_path=None, image_path=None, meassage=None):
         self.payload_to_hide = payload_path
         self.carrier_image = image_path
         self.file_type = None
@@ -155,6 +148,7 @@ class IMG:
         self.payload = None
         self.common = Common(self.payload_to_hide)
         self.supported = ['PNG','TIFF','TIF','BMP','ICO']
+        self.meassage = meassage
 
         assert self.carrier_image is not None
 
@@ -403,6 +397,8 @@ class IMG:
         Hides a payload within a carrier image. Defaults to outputting the new image into the 
         current directory with the name `new.<file_type>`.
         '''
+        if self.meassage:
+            pass  # тут вызов функции, которая меняет исходную картинку
         self._use_correct_function_hide()
 
     def extract(self):
@@ -411,6 +407,8 @@ class IMG:
         current directory with the name `hidden_file.<file_type>`.
         '''
         self._use_correct_function_extract()
+        pass  # тут вызов функции, которая вытаскивает из полученного фото текст
+        # и ещё нужно добавить вывод текста после расшифровки 
 
 
 # In[78]:
